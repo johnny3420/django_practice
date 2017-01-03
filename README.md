@@ -52,6 +52,7 @@ gedit env/lib/python3.5/site-packages/django/contrib/auth/forms.py
 # new_password1 = PasswordField(label=_("New password"), and new_password2 = PasswordField(label=_("new Password confirmation"),
 
 
+gedit env/lib/python3.5/site-packages/passwords/validators.py
 # add this to file
 PASSWORD_COMPLEXITY = { # You can omit any or all of these for no limit for that particular set
     "UPPER": 1,        # Uppercase
