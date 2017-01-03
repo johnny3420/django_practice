@@ -50,4 +50,17 @@ gedit env/lib/python3.5/site-packages/django/contrib/auth/forms.py
 # Change new_password1 = forms.CharField(label=_("New password"), and new_password2 = forms.CharField(label=_("New password confirmation"),
 # to
 # new_password1 = PasswordField(label=_("New password"), and new_password2 = PasswordField(label=_("new Password confirmation"),
+
+
+# add this to file
+PASSWORD_COMPLEXITY = { # You can omit any or all of these for no limit for that particular set
+    "UPPER": 1,        # Uppercase
+    "DIGITS": 1,       # Digits)
+}
+
+# Change PASSWORD_COMPLEXITY = getattr(
+#    settings, "PASSWORD_COMPLEXITY", None )
+# to
+# PASSWORD_COMPLEXITY = getattr(
+#    settings, "PASSWORD_COMPLEXITY", PASSWORD_COMPLEXITY)
 ```
