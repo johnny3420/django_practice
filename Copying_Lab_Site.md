@@ -95,7 +95,7 @@ PASSWORD_COMPLEXITY = { # You can omit any or all of these for no limit for that
 
 
 
-#### Build the database and start the server
+#### Build the database and start the server ( Will not run on django >= 1.8)
 
 ```sh
 python manage.py makemigrations lab_members cms_lab_members cms_lab_carousel cms_lab_publications cms_shiny cms_lab_data cms_genome_browser
@@ -103,5 +103,14 @@ python manage.py makemigrations
 python manage.py migrate
 
 python manage.py createsuperuser
-python manage.py runserver
+python manage.py runserver 0:8000
 ```
+
+
+#### Add content
+
+- Go to `http://symposium.plb.ucdavis.edu/`, login, and start adding pages. Some of the CMS lab components will be accessible via the CMS Plugin menu and others will be used as CMS Apps.
+
+  - To add a CMS Plugin: edit a page in `Structure` mode, hover over the icon for adding a plugin to a content block, scroll down to `Lab Plugins`, and select the desired plugin.
+
+  - To add a CMS App: create a new page, go to advanced page settings, and select the app from the dropdownwn menu labeled `Application:`. Where available, you can also attach a relevant menu for editing page contents from the dropdownwn menu labeled `Attached menu:`.
