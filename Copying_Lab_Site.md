@@ -287,3 +287,90 @@ class WSGIEnvironment(WSGIHandler):
 application = WSGIEnvironment()
 ```
 
+## Hide secret key
+
+Change the `SECRET_KEY` variable in `/mnt/data/www/rhizobiomics_site/cms_lab_site/settings/production.py` from this:
+
+```python
+SECRET_KEY = os.environ.get('MALOOF_LAB_SECRET_KEY", '')
+```
+
+to this:
+
+```python
+SECRET_KEY = os.environ.get('RHIZOBIOMICS_SECRET_KEY", '')
+```
+
+
+## Create a secret file to hold secrets
+
+In order to do migrations (and some other things), the secret key and the database password need to be set as environmental variables. However, the way we are passing them from Apache's configuration to `settings.py` via `wsgi.py` prevents them from being set for everyday use.
+
+We can get around this by placing an `export` statement for each secret variable into a file (`secrets.txt` located in the production directory) that is only readable by root. This is file will be gitignored.
+
+```sh
+sudo su - root
+SECRETS_FILE=/mnt/data/www/rhizobiomics_site/secrets.txt
+
+echo 'export RHIZOBIOMICS_SECRET_KEY="<super_secret_key>"
+export RHIZOBIOMICS_DB_PASSWORD="<super_secret_password>"' > $SECRETS_FILE
+
+chmod 600 $SECRETS_FILE
+exit
+```
+
+## Collect static files
+
+Change `STATIC_URL` in `$PROJECT_DIR/$PROJECT_NAME/settings.py` to:
+
+```sh
+STATIC_URL = '/static/django_cms_demo/'    # allows static files for multiple projects
+```
+
+Gitkeep empty static directory
+
+```sh
+touch django_cms_demo/static/.gitkeep
+```
+
+After gitignoring `/static/` and pulling the changes to the production repo, collect the static files. This can be done whenever there are changes/additions to the static files.
+
+```sh
+sudo -s
+cd /mnt/data/www/rhizobiomics_site
+source env/bin/activate
+source secrets.txt
+./manage.py collectstatic
+exit
+```
+
+## Migrate database and create super user
+
+To perform the initial database migration, we do the following:
+
+```sh
+cd /mnt/data/www/rhizobiomics_site
+source env/bin/activate
+eval `sudo cat secrets.txt`
+./manage.py migrate
+```
+
+And we need to create a super user:
+
+```sh
+./manage.py createsuperuser
+```
+
+>     Username (leave blank to use 'jtdavis'): 
+>     Email address: jtdavis@ucdavis.edu
+>     Password: 
+>     Password (again): 
+>     Superuser created successfully.
+
+Change the`ALLOWED_HOSTS` variables in `/mnt/data/www/rhizobiomics_site/cms_lab_site/settings/production.py` to this:
+
+```python
+DEBUG = False
+...
+ALLOWED_HOSTS = ['.plb.ucdavis.edu', ]
+```
