@@ -114,3 +114,52 @@ python manage.py runserver 0:8000
   - To add a CMS Plugin: edit a page in `Structure` mode, hover over the icon for adding a plugin to a content block, scroll down to `Lab Plugins`, and select the desired plugin.
 
   - To add a CMS App: create a new page, go to advanced page settings, and select the app from the dropdownwn menu labeled `Application:`. Where available, you can also attach a relevant menu for editing page contents from the dropdownwn menu labeled `Attached menu:`.
+
+- To run any of the Django `manage.py` commands, you need to activate the virtual envirnoment like so:
+
+> ```sh
+sudo su - root
+cd /mnt/data/www/rhizobiomics_site/
+source secrets.txt
+source env/bin/activate
+```
+
+- When running `makemigrations`, `migrate`, `collectstatic`, etc. in the production environment, be sure to use the `--settings=cms_lab_site.settings.production` option.
+
+- If using Apache, be sure to run `/usr/sbin/apachectl -k restart` after making any such changes.
+
+- `cms_lab_publications` uses a biopython package that insists on writing config files into the user's directory. Since the `www-data` user's home directory is `/var/www/`, it may be necessary to fix a permission error in a production setting:
+
+> ```sh
+# as root
+cd /var/www
+chown :www-data
+chmod g+s
+mkdir -p /var/www/.config/biopython/Bio/Entrez/DTDs
+mkdir -p /var/www/.config/biopython/Bio/Entrez/XSDs
+```
+
+#### Version checking
+
+When I building this site, I checked the versions of django CMS, Django, and Python:
+
+```sh
+python -c '
+from cms import __version__
+import django
+import sys
+
+print("django CMS: %s" % __version__)
+print("Django:     %s" % django.get_version())
+print("Python:     %s" % sys.version)
+'
+```
+
+Results:
+
+    django CMS: 3.1.0
+    Django:     1.7.8
+    Python:     3.4.2 (default, Jan  9 2017, 14:57:12) 
+    [GCC 4.7.2]
+    
+ 
