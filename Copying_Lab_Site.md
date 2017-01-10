@@ -31,22 +31,68 @@ git clone https://github.com/mfcovington/djangocms-lab-site.git .
 #### Make a virtual environment for the project and install all of the dependencies
 
 ```sh
-virtualenv -p /home/john/Documents/Lab_Site/.localpython/bin/python3 env
-source env/bin/activate
+virtualenv -p /usr/lib/python3.4.2/bin/python3 env
 
+source env/bin/activate
 pip install --upgrade pip
 pip install -r requirements-for-quick-install.txt
 pip install djangocms-lab-site.components-for-installation/*
 
 # install bootstrap, jquery, etc. using bower (to install bower: https://bower.io/#install-bower)
 # cannot be done in sudo
-cd ..
+exit
+cd /mnt/data/www/
 sudo chown -R jtdavis rhizobiomics_site
 cd rhizobiomics_site
 bower install
 cd ..
 sudo chown -R root rhizobiomics_site
 ```
+
+#### Add password validation
+
+```sh
+sudo -s
+cd /mnt/data/www/rhizobiomics_site
+source env/bin/activate
+pip install django-passwords
+nano env/lib/python3.4/site-packages/django/contrib/auth/forms.py
+# Add from passwords.fields import PasswordField to the beginning of the file
+# Under class UserCreationForm
+# Change password1 = forms.CharField(label=_("Password"), and password2 = forms.CharField(label=_("Password confirmation"),
+# to
+# password1 = PasswordField(label=_("Password"), and password2 = PasswordField(label=_("Password confirmation"),
+
+# Under class SetPasswordForm
+# Change new_password1 = forms.CharField(label=_("New password"), and new_password2 = forms.CharField(label=_("New password confirmation"),
+# to
+# new_password1 = PasswordField(label=_("New password"), and new_password2 = PasswordField(label=_("new Password confirmation"),
+
+# Under class AdminPasswordChangeForm
+# Change password1 = forms.CharField(label=_("Password"), and password2 = forms.CharField(label=_("Password (again)"),
+# to
+# password1 = PasswordField(label=_("Password"), and password2 = PasswordField(label=_("Password confirmation"),
+
+nano env/lib/python3.4/site-packages/passwords/validators.py
+# add this to file
+PASSWORD_COMPLEXITY = { # You can omit any or all of these for no limit for that particular set
+    "UPPER": 1,        # Uppercase
+    "DIGITS": 1,       # Digits)
+}
+
+#PASSWORD_MIN_LENGTH = getattr(
+#    settings, "PASSWORD_MIN_LENGTH", 6)
+#to
+#PASSWORD_MIN_LENGTH = getattr(
+#    settings, "PASSWORD_MIN_LENGTH", 8)
+
+# Change PASSWORD_COMPLEXITY = getattr(
+#    settings, "PASSWORD_COMPLEXITY", None )
+# to
+# PASSWORD_COMPLEXITY = getattr(
+#    settings, "PASSWORD_COMPLEXITY", PASSWORD_COMPLEXITY)
+```
+
 
 
 #### Build the database and start the server
