@@ -163,3 +163,127 @@ Results:
     [GCC 4.7.2]
     
  
+ ## Create and configure PostgreSQL database
+
+Create database and admin
+
+```sh
+sudo su - postgres
+createdb rhizobiomics_db
+createuser -P
+# Enter name of role to add: rhizobiomics_admin
+# Enter password for new role: 
+# Enter it again: 
+# Shall the new role be a superuser? (y/n) n
+# Shall the new role be allowed to create databases? (y/n) n
+# Shall the new role be allowed to create more new roles? (y/n) n
+psql
+```
+
+Grant privileges
+
+```sql
+GRANT ALL PRIVILEGES ON DATABASE rhizobiomics_db TO rhizobiomics_admin;
+\q
+```
+
+Logout postgres user
+
+```sh
+exit
+```
+
+## Configure project to use PostgreSQL database
+
+Set the project's database to the PostgreSQL database `rhizobiomics_db` in `/mnt/data/www/rhizobiomics_site/cms_lab_site/settings/production.py` by changing this:
+
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'django_cms_demo_db',
+        'USER': 'django_cms_demo_admin',
+        # password will passed from environmental variable:
+        'PASSWORD': os.environ.get("DJANGO_CMS_DEMO_DB_PASSWORD", ''),
+        'HOST': '127.0.0.1',
+        'PORT': '5432', 
+    }   
+}
+```
+
+To
+
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'rhizobiomics_db',
+        'USER': 'rhizobiomics_admin',
+        # password will passed from environmental variable:
+        'PASSWORD': os.environ.get("RHIZOBIOMICS_DB_PASSWORD", ''),
+        'HOST': '127.0.0.1',
+        'PORT': '5432', 
+    }   
+}
+```
+
+Remove SQLite3 database:
+
+```sh
+rm /mnt/data/www/rhizobiomics_site/project.db
+```
+
+## Configure site in Apache and set DB password
+
+Create and add the following eight lines to `/etc/apache2/sites-available/rhizobiomics.org.conf` (with the actual password and secret key instead of 'super_secret_password' and 'super_secret_key'):
+
+```apache
+<VirtualHost *:80>
+...
+    WSGIDaemonProcess rhizobiomics_site python-path=/mnt/data/www/rhizobiomics_site:/mnt/data/www/rhizobiomics/env/lib/python3.4/site-packages
+    <Location /rhizobiomics_site>
+        WSGIProcessGroup rhizobioics_site
+    </Location>
+    SetEnv RHIZOBIOMICS_SECRET_KEY super_secret_key
+    SetEnv RHIZOBIOMICS_DB_PASSWORD super_secret_password
+    WSGIScriptAlias / /mnt/data/www/rhizobiomics_site/cms_lab_site/wsgi.py
+    Alias /static/Rhizobiomics /mnt/data/www/rhizobiomics_site/static/
+    Alias /media/Rhizobiomics /mnt/data/www/rhizobiomics_site/media/
+
+...
+</VirtualHost>
+```
+
+The new secret key was made using an [online generator](http://www.miniwebtool.com/django-secret-key-generator/).
+
+Change `$PROJECT_DIR/cms_lab_site/wsgi.py` (`/mnt/data/www/rhizobiomics_site/cms_lab_site/wsgi.py`)to:
+
+```python
+"""
+WSGI config for cms_lab_site project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/
+"""
+
+from django.core.handlers.wsgi import WSGIHandler
+import django
+import os
+
+class WSGIEnvironment(WSGIHandler):
+
+    def __call__(self, environ, start_response):
+
+        os.environ['RHIZOBIOMICS_SECRET_KEY'] = environ['RHIZOBIOMICS_SECRET_KEY']
+        os.environ['RHIZOBIOMICS_DB_PASSWORD'] = environ['RHIZOBIOMICS_DB_PASSWORD']
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms_lab_site.settings.production.py")
+        django.setup()
+        return super(WSGIEnvironment, self).__call__(environ, start_response)
+
+application = WSGIEnvironment()
+```
+
