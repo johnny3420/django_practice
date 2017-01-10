@@ -194,6 +194,13 @@ DATABASES = {
 Create and add the following eight lines to `/etc/apache2/sites-available/rhizobiomics.org.conf` (with the actual password and secret key instead of 'super_secret_password' and 'super_secret_key'):
 
 ```apache
+
+<VirtualHost *:80>
+    ServerName rhizobiomics.org
+    RedirectPermanent / http://phytonetworks.org/
+</VirtualHost>
+
+
 <VirtualHost *:80>
 ...
     WSGIDaemonProcess rhizobiomics_site python-path=/mnt/data/www/rhizobiomics_site:/mnt/data/www/rhizobiomics/env/lib/python3.4/site-packages
@@ -324,7 +331,8 @@ Change the`ALLOWED_HOSTS` variables in `/mnt/data/www/rhizobiomics_site/cms_lab_
 ```python
 DEBUG = False
 ...
-ALLOWED_HOSTS = ['.plb.ucdavis.edu', ]
+ALLOWED_HOSTS = ['.plb.ucdavis.edu',
+                 'rhizobiomics.org']
 ```
 
 #### Add content
