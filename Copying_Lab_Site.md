@@ -340,7 +340,7 @@ sudo -s
 cd /mnt/data/www/rhizobiomics_site
 source env/bin/activate
 source secrets.txt
-./manage.py collectstatic
+./manage.py collectstatic --settings=cms_lab_site.settings.production
 exit
 ```
 
@@ -352,13 +352,13 @@ To perform the initial database migration, we do the following:
 cd /mnt/data/www/rhizobiomics_site
 source env/bin/activate
 eval `sudo cat secrets.txt`
-./manage.py migrate
+./manage.py migrate --settings=cms_lab_site.settings.production
 ```
 
 And we need to create a super user:
 
 ```sh
-./manage.py createsuperuser
+./manage.py createsuperuser --settings=cms_lab_site.settings.production
 ```
 
 >     Username (leave blank to use 'jtdavis'): 
