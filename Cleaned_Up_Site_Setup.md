@@ -335,6 +335,41 @@ ALLOWED_HOSTS = ['.plb.ucdavis.edu',
                  'rhizobiomics.org']
 ```
 
+#### Add a wiki to site
+
+Add the following to `/mnt/data/www/rhizobiomics/cms_lab_site/urls.py`
+
+At the top
+
+`from wiki.urls import get_pattern as get_wiki_pattern`
+`from django_nyt.urls import get_pattern as get_nyt_pattern`
+
+Under urlpatterns
+    ...
+    url(r'^notifications/', get_nyt_pattern()),
+    url(r'^wiki/', get_wiki_pattern()),
+    ...
+
+
+Add the following to `/mnt/data/www/rhizobiomics/cms_lab_site/settings/base.py`
+
+Inside THIRD_PARTY_APPS
+
+    'django_nyt',
+    'sorl.thumbnail',
+    'wiki',
+    'wiki.plugins.attachments',
+    'wiki.plugins.notifications',
+    'wiki.plugins.images',
+    'wiki.plugins.macros',
+
+Then add it to database
+
+```sh
+python manage.py syncdb
+python manage.py migrate
+```
+
 #### Add content
 
 - Go to `http://127.0.0.1:8000/`, login, and start adding pages. Some of the CMS lab components will be accessible via the CMS Plugin menu and others will be used as CMS Apps.
