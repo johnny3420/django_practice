@@ -26,13 +26,6 @@ git clone https://github.com/mfcovington/djangocms-lab-site.git .
 #### Customize the lab name in `cms_lab_site/settings/base.py`
 
     LAB_NAME = 'Rhizobiomics'
-    
-#### Change `cms_lab_site/settings/__init__.py` from:
-
-`from .development import *`
-to:
-`from .production import *`
-
 
 #### Make a virtual environment for the project and install all of the dependencies
 
@@ -191,27 +184,27 @@ DATABASES = {
 
 ## Configure site in Apache and set DB password
 
-Create and add the following eight lines to `/etc/apache2/sites-available/rhizobiomics.org.conf` (with the actual password and secret key instead of 'super_secret_password' and 'super_secret_key'):
+Create and add the following lines to `/etc/apache2/sites-available/rhizobiomics.org.conf` (with the actual password and secret key instead of 'super_secret_password' and 'super_secret_key'):
 
 ```apache
 
 <VirtualHost *:80>
+    ServerAdmin webmaster@localhost
     ServerName rhizobiomics.org
-    RedirectPermanent / http://phytonetworks.org/
-</VirtualHost>
-
-
-<VirtualHost *:80>
-...
-    WSGIDaemonProcess rhizobiomics_site python-path=/mnt/data/www/rhizobiomics_site:/mnt/data/www/rhizobiomics/env/lib/python3.4/site-packages
+    ServerAlias www.rhizobiomics.org
+    DocumentRoot /mnt/data/www
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+    
+    WSGIDaemonProcess rhizobiomics_site python-path=/mnt/data/www/rhizobiomics_site:/mnt/data/www/rhizobiomics_site/env/lib/python3.4/site-packages
     <Location /rhizobiomics_site>
-        WSGIProcessGroup rhizobioics_site
+        WSGIProcessGroup rhizobiomics_site
     </Location>
     SetEnv RHIZOBIOMICS_SECRET_KEY super_secret_key
     SetEnv RHIZOBIOMICS_DB_PASSWORD super_secret_password
     WSGIScriptAlias / /mnt/data/www/rhizobiomics_site/cms_lab_site/wsgi.py
-    Alias /static/Rhizobiomics /mnt/data/www/rhizobiomics_site/static/
-    Alias /media/Rhizobiomics /mnt/data/www/rhizobiomics_site/media/
+    Alias /static/rhizobiomics /mnt/data/www/rhizobiomics_site/static/
+    Alias /media/rhizobiomics /mnt/data/www/rhizobiomics_site/media/
 
 ...
 </VirtualHost>
@@ -241,7 +234,7 @@ class WSGIEnvironment(WSGIHandler):
 
         os.environ['RHIZOBIOMICS_SECRET_KEY'] = environ['RHIZOBIOMICS_SECRET_KEY']
         os.environ['RHIZOBIOMICS_DB_PASSWORD'] = environ['RHIZOBIOMICS_DB_PASSWORD']
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms_lab_site.settings")
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms_lab_site.settings.production")
         django.setup()
         return super(WSGIEnvironment, self).__call__(environ, start_response)
 
@@ -280,25 +273,6 @@ chmod 600 $SECRETS_FILE
 exit
 ```
 
-## Collect static files
-
-Gitkeep empty static directory
-
-```sh
-mkdir static
-touch static/.gitkeep
-```
-Collect the static files. This can be done whenever there are changes/additions to the static files.
-
-```sh
-sudo -s
-cd /mnt/data/www/rhizobiomics_site
-source env/bin/activate
-source secrets.txt
-./manage.py collectstatic
-exit
-```
-
 ## Migrate database and create super user
 
 To perform the initial database migration, we do the following:
@@ -307,9 +281,9 @@ To perform the initial database migration, we do the following:
 cd /mnt/data/www/rhizobiomics_site
 source env/bin/activate
 eval `sudo cat secrets.txt`
-./manage.py makemigrations lab_members cms_lab_members cms_lab_carousel cms_lab_publications cms_shiny cms_lab_data cms_genome_browser
-./manage.py makemigrations
-./manage.py migrate
+./manage.py makemigrations lab_members cms_lab_members cms_lab_carousel cms_lab_publications cms_shiny cms_lab_data cms_genome_browser --settings=cms_lab_site.settings.production
+./manage.py makemigrations --settings=cms_lab_site.settings.production
+./manage.py migrate --settings=cms_lab_site.settings.production
 ```
 
 - If using Apache, be sure to run `/usr/sbin/apachectl -k restart` after making any such changes.
@@ -317,7 +291,7 @@ eval `sudo cat secrets.txt`
 And we need to create a super user:
 
 ```sh
-./manage.py createsuperuser
+./manage.py createsuperuser --settings=cms_lab_site.settings.production
 ```
 
 >     Username (leave blank to use 'jtdavis'): 
@@ -366,9 +340,23 @@ Inside THIRD_PARTY_APPS
 Then add it to database
 
 ```sh
-python manage.py syncdb
-python manage.py migrate
+python manage.py syncdb --settings=cms_lab_site.settings.production
+python manage.py migrate --settings=cms_lab_site.settings.production
 ```
+
+## Collect static files
+
+Collect the static files. This can be done whenever there are changes/additions to the static files.
+
+```sh
+sudo -s
+cd /mnt/data/www/rhizobiomics_site
+source env/bin/activate
+source secrets.txt
+./manage.py collectstatic --settings=cms_lab_site.settings.production
+exit
+```
+
 
 #### Add content
 
