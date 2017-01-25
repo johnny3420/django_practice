@@ -184,29 +184,33 @@ DATABASES = {
 
 ## Configure site in Apache and set DB password
 
-Create and add the following lines to `/etc/apache2/sites-available/rhizobiomics.org.conf` (with the actual password and secret key instead of 'super_secret_password' and 'super_secret_key'):
+Add the following lines to `/etc/apache2/sites-available/default` (with the actual password and secret key instead of 'super_secret_password' and 'super_secret_key'):
 
 ```apache
+<VirtualHost *:80>
+    ServerName http://www.rhizobiomics.org
+    RedirectPermanent / http://rhizobiomics.org
+</VirtualHost>
 
 <VirtualHost *:80>
+
     ServerAdmin webmaster@localhost
     ServerName rhizobiomics.org
     ServerAlias www.rhizobiomics.org
-    DocumentRoot /mnt/data/www
+    DocumentRoot /mnt/data/www/rhizobiomics_site
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
-    
+
     WSGIDaemonProcess rhizobiomics_site python-path=/mnt/data/www/rhizobiomics_site:/mnt/data/www/rhizobiomics_site/env/lib/python3.4/site-packages
-    <Location /rhizobiomics_site>
+    <Location />
         WSGIProcessGroup rhizobiomics_site
     </Location>
-    SetEnv RHIZOBIOMICS_SECRET_KEY super_secret_key
-    SetEnv RHIZOBIOMICS_DB_PASSWORD super_secret_password
+    SetEnv RHIZOBIOMICS_SECRET_KEY "passkey"
+    SetEnv RHIZOBIOMICS_DB_PASSWORD "password"
     WSGIScriptAlias / /mnt/data/www/rhizobiomics_site/cms_lab_site/wsgi.py
     Alias /static/rhizobiomics /mnt/data/www/rhizobiomics_site/static/
     Alias /media/rhizobiomics /mnt/data/www/rhizobiomics_site/media/
 
-...
 </VirtualHost>
 ```
 
@@ -357,6 +361,15 @@ source secrets.txt
 exit
 ```
 
+## Update server
+
+When changing files accessed by apache2 make sure to run
+
+```sh
+
+sudo service apache2 restart
+
+```
 
 #### Add content
 
